@@ -1,0 +1,8 @@
+﻿InputClass.obj : error LNK2001: 확인할 수 없는 외부 기호 _GUID_SysMouse
+InputClass.obj : error LNK2001: 확인할 수 없는 외부 기호 _IID_IDirectInput8W
+InputClass.obj : error LNK2001: 확인할 수 없는 외부 기호 _GUID_SysKeyboard
+dinput8.lib(dilib2.obj) : error LNK2001: 확인할 수 없는 외부 기호 _GUID_Key
+dinput8.lib(dilib1.obj) : error LNK2001: 확인할 수 없는 외부 기호 _GUID_YAxis
+dinput8.lib(dilib1.obj) : error LNK2001: 확인할 수 없는 외부 기호 _GUID_XAxis
+dinput8.lib(dilib1.obj) : error LNK2001: 확인할 수 없는 외부 기호 _GUID_ZAxis
+C:\Users\hongik\Downloads\CG-T04-04-Billboarding-vs2022\Release\Framework.exe : fatal error LNK1120: 7개의 확인할 수 없는 외부 참조입니다.
