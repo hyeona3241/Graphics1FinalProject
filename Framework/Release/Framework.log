@@ -1,9 +1,16 @@
-﻿  graphicsclass.cpp
+﻿  DDSTextureLoader.cpp
+  cameraclass.cpp
+  d3dclass.cpp
+  graphicsclass.cpp
+  inputclass.cpp
   main.cpp
+  modelclass.cpp
   systemclass.cpp
+  textureclass.cpp
+  textureshaderclass.cpp
   코드를 생성하고 있습니다.
-  326 of 495 functions (65.9%) were compiled, the rest were copied from previous compilation.
-    147 functions were new in current compilation
-    36 functions had inline decision re-evaluated but remain unchanged
+  0 of 495 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
   코드를 생성했습니다.
   Framework.vcxproj -> C:\Users\hongik\Documents\GitHub\Graphics1FinalProject\Release\Framework.exe
