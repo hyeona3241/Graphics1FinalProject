@@ -1,6 +1,30 @@
-#pragma once
+////////////////////////////////////////////////////////////////////////////////
+// Filename: textureshaderclass.h
+// The TextureShaderClass is just an updated version of the ColorShaderClass from 
+// the previous tutorial. This class will be used to draw the 3D models using vertex 
+// and pixel shaders.
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _TEXTURESHADERCLASS_H_
+#define _TEXTURESHADERCLASS_H_
 
-class TextureShaderClass : public AlignedAllocationPolicy<16>
+
+//////////////
+// INCLUDES //
+//////////////
+#include <d3d11.h>
+#include <directxmath.h>
+#include <d3dcompiler.h>
+
+#include <fstream>
+
+using namespace std;
+using namespace DirectX;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: TextureShaderClass
+////////////////////////////////////////////////////////////////////////////////
+class TextureShaderClass
 {
 private:
 	struct MatrixBufferType
@@ -19,6 +43,7 @@ public:
 	void Shutdown();
 	bool Render(ID3D11DeviceContext*, int, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*);
 
+	void SetAnisotropicFilter(bool enable) { m_useAnisotropic = enable; }
 private:
 	bool InitializeShader(ID3D11Device*, HWND, const WCHAR*);
 	void ShutdownShader();
@@ -28,9 +53,15 @@ private:
 	void RenderShader(ID3D11DeviceContext*, int);
 
 private:
-	ID3D11VertexShader* m_vertexShader = nullptr;
-	ID3D11PixelShader* m_pixelShader = nullptr;
-	ID3D11InputLayout* m_layout = nullptr;
-	ID3D11Buffer* m_matrixBuffer = nullptr;
-	ID3D11SamplerState* m_sampleState = nullptr;
+	ID3D11VertexShader* m_vertexShader;
+	ID3D11PixelShader* m_pixelShader;
+	ID3D11InputLayout* m_layout;
+	ID3D11Buffer* m_matrixBuffer;
+	ID3D11SamplerState* m_sampleState;
+
+	ID3D11SamplerState* m_linearState;       // 리니어 필터
+	ID3D11SamplerState* m_anisoState;        // 이방성 필터
+	bool                m_useAnisotropic;
 };
+
+#endif

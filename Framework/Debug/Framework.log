@@ -1,15 +1,2 @@
-﻿  CameraClass.cpp
-  D3DClass.cpp
-  DDSTextureLoader.cpp
-  GraphicsClass.cpp
-  InputClass.cpp
-  main.cpp
-  ModelClass.cpp
-  PositionClass.cpp
-  stdafx.cpp
-  SystemClass.cpp
-  TextureClass.cpp
-  TextureShaderClass.cpp
-  TimerClass.cpp
-  코드를 생성하고 있습니다...
-  Framework.vcxproj -> C:\Users\hongik\Desktop\CG-T04-04-Billboarding-vs2022\Debug\Framework.exe
+﻿  graphicsclass.cpp
+  Framework.vcxproj -> C:\Users\hongik\Downloads\CG-T03-02-Model-vs2022\Debug\Framework.exe

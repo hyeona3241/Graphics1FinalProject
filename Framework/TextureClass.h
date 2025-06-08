@@ -1,5 +1,18 @@
-#pragma once
+////////////////////////////////////////////////////////////////////////////////
+// Filename: textureclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _TEXTURECLASS_H_
+#define _TEXTURECLASS_H_
 
+
+//////////////
+// INCLUDES //
+//////////////
+#include <d3d11.h>
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: TextureClass
+////////////////////////////////////////////////////////////////////////////////
 class TextureClass
 {
 public:
@@ -7,12 +20,13 @@ public:
 	TextureClass(const TextureClass&);
 	~TextureClass();
 
-	bool Initialize(ID3D11Device*, const WCHAR * filename);
+	bool Initialize(ID3D11Device*, const WCHAR*);
 	void Shutdown();
 
 	ID3D11ShaderResourceView* GetTexture();
 
-
 private:
-	ID3D11ShaderResourceView* m_texture = nullptr;
+	ID3D11ShaderResourceView* m_texture;
 };
+
+#endif

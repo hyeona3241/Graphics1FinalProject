@@ -1,9 +1,14 @@
-#include "stdafx.h"
-#include "TextureClass.h"
+////////////////////////////////////////////////////////////////////////////////
+// Filename: textureclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "textureclass.h"
+#include "DDSTextureLoader.h"
 
+using namespace DirectX;
 
 TextureClass::TextureClass()
 {
+	m_texture = 0;
 }
 
 
@@ -17,11 +22,13 @@ TextureClass::~TextureClass()
 }
 
 
-
-bool TextureClass::Initialize(ID3D11Device* device, const WCHAR * filename)
+bool TextureClass::Initialize(ID3D11Device* device, const WCHAR* filename)
 {
-	// 텍스처를 파일로부터 읽어온다
-	if(FAILED(CreateDDSTextureFromFile(device, filename, nullptr, &m_texture)))
+	HRESULT result;
+
+	// Load texture data from a file by using DDS texture loader.
+	result = CreateDDSTextureFromFile(device, filename, nullptr, &m_texture);
+	if (FAILED(result))
 	{
 		return false;
 	}
@@ -32,12 +39,14 @@ bool TextureClass::Initialize(ID3D11Device* device, const WCHAR * filename)
 
 void TextureClass::Shutdown()
 {
-	//텍스처 뷰 리소스를 해제한다.
-	if (m_texture)
+	// Release the texture resource.
+	if(m_texture)
 	{
 		m_texture->Release();
 		m_texture = 0;
 	}
+
+	return;
 }
 
 

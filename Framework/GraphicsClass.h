@@ -1,4 +1,20 @@
-#pragma once
+////////////////////////////////////////////////////////////////////////////////
+// Filename: graphicsclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _GRAPHICSCLASS_H_
+#define _GRAPHICSCLASS_H_
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "d3dclass.h"
+#include "cameraclass.h"
+#include "modelclass.h"
+#include "textureshaderclass.h"
+#include <vector>
+#include <string>
+
 
 /////////////
 // GLOBALS //
@@ -9,11 +25,9 @@ const float SCREEN_DEPTH = 1000.0f;
 const float SCREEN_NEAR = 0.1f;
 
 
-class D3DClass;
-class CameraClass;
-class ModelClass;
-class TextureShaderClass;
-
+////////////////////////////////////////////////////////////////////////////////
+// Class name: GraphicsClass
+////////////////////////////////////////////////////////////////////////////////
 class GraphicsClass
 {
 public:
@@ -23,15 +37,20 @@ public:
 
 	bool Initialize(int, int, HWND);
 	void Shutdown();
-	bool Frame(XMFLOAT3&);
+	bool Frame();
+
+	void SetAnisotropicFilter(bool enable);
 
 private:
-	bool Render();
+	bool Render(float);
 
 private:
-	D3DClass* m_Direct3D = nullptr;
-	CameraClass* m_Camera = nullptr;
-	ModelClass* m_FloorModel = nullptr;
-	ModelClass* m_BillboardModel = nullptr;
-	TextureShaderClass* m_TextureShader = nullptr;
+	D3DClass* m_D3D;
+	CameraClass* m_Camera;
+	TextureShaderClass* m_TextureShader;
+
+	std::vector<ModelClass*> m_Models;
+	ModelClass* m_ModelGround;
 };
+
+#endif

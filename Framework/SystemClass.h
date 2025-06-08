@@ -1,12 +1,32 @@
-#pragma once
+////////////////////////////////////////////////////////////////////////////////
+// Filename: systemclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _SYSTEMCLASS_H_
+#define _SYSTEMCLASS_H_
 
 
-class InputClass;
-class GraphicsClass;
-class TimerClass;
-class PositionClass;
+///////////////////////////////
+// PRE-PROCESSING DIRECTIVES //
+///////////////////////////////
+#define WIN32_LEAN_AND_MEAN
 
 
+//////////////
+// INCLUDES //
+//////////////
+#include <windows.h>
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "inputclass.h"
+#include "graphicsclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: SystemClass
+////////////////////////////////////////////////////////////////////////////////
 class SystemClass
 {
 public:
@@ -30,11 +50,21 @@ private:
 	HINSTANCE m_hinstance;
 	HWND m_hwnd;
 
-	InputClass* m_Input = nullptr;
-	GraphicsClass* m_Graphics = nullptr;
-	TimerClass* m_Timer = nullptr;
-	PositionClass* m_Position = nullptr;
+	InputClass* m_Input;
+	GraphicsClass* m_Graphics;
 };
 
+
+/////////////////////////
+// FUNCTION PROTOTYPES //
+/////////////////////////
 static LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+
+
+/////////////
+// GLOBALS //
+/////////////
 static SystemClass* ApplicationHandle = 0;
+
+
+#endif
