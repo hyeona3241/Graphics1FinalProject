@@ -19,6 +19,7 @@ using namespace DirectX;
 #include "textureclass.h"
 
 #include <fstream>
+#include <vector>
 using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -32,6 +33,11 @@ private:
 		XMFLOAT3 position;
 	    XMFLOAT2 texture;
 		XMFLOAT3 normal;
+	};
+
+	struct InstanceType
+	{
+		XMFLOAT3 position;  // 각 인스턴스의 위치
 	};
 
 	struct FaceType
@@ -84,6 +90,13 @@ private:
 public:
 	int m_vertexCount, m_indexCount;
 	ModelType* m_model;
+
+//private:
+//	ID3D11Buffer* m_instanceBuffer = nullptr;  // 인스턴스 버퍼
+//	int m_instanceCount = 0;             // 인스턴스 개수
+//
+//public:
+//	void SetupInstancing(ID3D11Device* device, int instanceCount);
 };
 
 #endif

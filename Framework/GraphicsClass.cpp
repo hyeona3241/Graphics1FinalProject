@@ -145,6 +145,9 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	//// 아누비스 모델만 인스턴싱 설정
+	//m_Models[5]->SetupInstancing(m_D3D->GetDevice(), 10); // 예: 10개 복제
+
 	return true;
 }
 
@@ -250,12 +253,83 @@ bool GraphicsClass::Render(float rotation)
 		XMMATRIX worldMatrix;
 		m_D3D->GetWorldMatrix(worldMatrix);
 
-		// 예시: 모델마다 X축으로 살짝씩 간격 배치
-		float offsetX = (static_cast<float>(i) - (m_Models.size() / 2.0f)) * 3.0f;
-		worldMatrix *= XMMatrixScaling(2.0f, 2.0f, 2.0f);
-		worldMatrix *= XMMatrixRotationY(rotation);
-		worldMatrix *= XMMatrixTranslation(offsetX, 0.3f, 0.0f);
+		if (i == 0) // 0번 모델만 특별한 배치
+		{
+			worldMatrix *= XMMatrixScaling(2.0f, 2.0f, 2.0f);    // 크기: 1배
+			//worldMatrix *= XMMatrixRotationY(rotation);          // Y축 회전
+			worldMatrix *= XMMatrixRotationY(XMConvertToRadians(90.0f)); // Y축 90도 회전
+			worldMatrix *= XMMatrixTranslation(-3.5f, 1.0f, 4.0f); // X: -10으로 이동
+		}
+		else if (i == 1) // 1번 모델만 다른 배치
+		{
+			worldMatrix *= XMMatrixScaling(2.0f, 2.0f, 2.0f);    // 크기: 3배
+			//worldMatrix *= XMMatrixRotationY(rotation * 0.5f);   // Y축 회전 (속도 절반)
+			worldMatrix *= XMMatrixRotationY(XMConvertToRadians(90.0f)); // Y축 90도 회전
+			worldMatrix *= XMMatrixTranslation(3.5f, 1.0f, 4.0f);  // X: 5, Z: 2
+		}
+		else if (i == 3)
+		{
+			worldMatrix *= XMMatrixScaling(5.0f, 5.0f, 5.0f);    // 크기: 3배
+			//worldMatrix *= XMMatrixRotationY(rotation * 0.5f);   // Y축 회전 (속도 절반)
+			worldMatrix *= XMMatrixRotationY(XMConvertToRadians(90.0f)); // Y축 90도 회전
+			worldMatrix *= XMMatrixTranslation(0.0f, 2.0f, 15.0f);  // X: 5, Z: 2
+		}
+		//아누비스
+		else if (i == 4)
+		{
+			worldMatrix *= XMMatrixScaling(1.3f, 1.3f, 1.3f);    // 크기: 3배
+			//worldMatrix *= XMMatrixRotationY(rotation * 0.5f);   // Y축 회전 (속도 절반)
+			//worldMatrix *= XMMatrixRotationY(XMConvertToRadians(90.0f)); // Y축 90도 회전
+			worldMatrix *= XMMatrixTranslation(-2.0f, 1.3f, 0.5f);  // X: 5, Z: 2
+		}
+		/*else if (i == 5)
+		{
+			m_Models[i]->Render(m_D3D->GetDeviceContext());
+			bool result = m_TextureShader->Render(
+				m_D3D->GetDeviceContext(),
+				m_Models[i]->GetIndexCount(),
+				XMMatrixIdentity(), viewMatrix, projectionMatrix,
+				m_Models[i]->GetTexture()
+			);
+			if (!result) return false;
+		}*/
+		else if (i == 6)
+		{
+			worldMatrix *= XMMatrixScaling(2.0f, 2.0f, 2.0f);    // 크기: 3배
+			//worldMatrix *= XMMatrixRotationY(rotation * 0.5f);   // Y축 회전 (속도 절반)
+			//worldMatrix *= XMMatrixRotationY(XMConvertToRadians(90.0f)); // Y축 90도 회전
+			worldMatrix *= XMMatrixTranslation(0.0f, 2.0f, 3.0f);  // X: 5, Z: 2
+		}
+		else if (i == 7)
+		{
+			worldMatrix *= XMMatrixScaling(0.08f, 0.08f, 0.08f);    // 크기: 3배
+			worldMatrix *= XMMatrixRotationX(XMConvertToRadians(90.0f));
+			worldMatrix *= XMMatrixRotationY(rotation * 0.5f);   // Y축 회전 (속도 절반)
+			worldMatrix *= XMMatrixTranslation(0.0f, 0.0f, 0.0f);  // X: 5, Z: 2
+		}
+		else if (i == 8)
+		{
+			worldMatrix *= XMMatrixScaling(0.1f, 0.1f, 0.1f);    // 크기: 3배
+			worldMatrix *= XMMatrixRotationX(XMConvertToRadians(90.0f));
+			worldMatrix *= XMMatrixRotationY(rotation * 0.5f);   // Y축 회전 (속도 절반)
+			worldMatrix *= XMMatrixTranslation(-2.0f, 0.0f, -2.0f);  // X: 5, Z: 2
+		}
+		else if (i == 9)
+		{
+			worldMatrix *= XMMatrixScaling(0.8f, 0.8f, 0.8f);    // 크기: 3배
+			//worldMatrix *= XMMatrixRotationX(XMConvertToRadians(90.0f));
+			worldMatrix *= XMMatrixRotationY(rotation * 0.5f);   // Y축 회전 (속도 절반)
+			worldMatrix *= XMMatrixTranslation(2.0f, 0.5f, -2.0f);  // X: 5, Z: 2
+		}
+		else // 나머지 모델은 공통 배치
+		{
+			float offsetX = (static_cast<float>(i) - (m_Models.size() / 2.0f)) * 3.0f;
+			worldMatrix *= XMMatrixScaling(2.0f, 2.0f, 2.0f);
+			worldMatrix *= XMMatrixRotationY(rotation);
+			worldMatrix *= XMMatrixTranslation(offsetX, 0.3f, 0.0f);
+		}
 
+		// 렌더
 		m_Models[i]->Render(m_D3D->GetDeviceContext());
 		bool result = m_TextureShader->Render(
 			m_D3D->GetDeviceContext(),
@@ -265,6 +339,7 @@ bool GraphicsClass::Render(float rotation)
 		);
 		if (!result) return false;
 	}
+
 
 
 
