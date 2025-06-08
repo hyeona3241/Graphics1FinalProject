@@ -166,34 +166,6 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	}
 
 
-	//// 예: 10개의 인스턴스 위치 데이터 생성
-	//m_instanceCount = 10;
-	//InstanceType* instances = new InstanceType[m_instanceCount];
-	//for (int i = 0; i < m_instanceCount; ++i)
-	//{
-	//	instances[i].position = XMFLOAT3(i * 2.0f, 0.0f, 0.0f);  // X축으로 3.0씩 간격
-	//}
-
-	//// 버퍼 설명
-	//D3D11_BUFFER_DESC instanceBufferDesc = {};
-	//instanceBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	//instanceBufferDesc.ByteWidth = sizeof(InstanceType) * m_instanceCount;
-	//instanceBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	//instanceBufferDesc.CPUAccessFlags = 0;
-	//instanceBufferDesc.MiscFlags = 0;
-
-	//// 버퍼 데이터
-	//D3D11_SUBRESOURCE_DATA instanceData = {};
-	//instanceData.pSysMem = instances;
-
-	//// 버퍼 생성
-	//result = device->CreateBuffer(&instanceBufferDesc, &instanceData, &m_instanceBuffer);
-	//if (FAILED(result)) return false;
-
-	//// 임시 데이터 해제
-	//delete[] instances;
-
-
 	// Release the arrays now that the vertex and index buffers have been created and loaded.
 	delete [] vertices;
 	vertices = 0;
@@ -221,11 +193,6 @@ void ModelClass::ShutdownBuffers()
 		m_vertexBuffer = 0;
 	}
 
-	/*if (m_instanceBuffer)
-	{
-		m_instanceBuffer->Release();
-		m_instanceBuffer = 0;
-	}*/
 
 	return;
 }
@@ -240,26 +207,33 @@ void ModelClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	// Set vertex buffer stride and offset.
 	stride = sizeof(VertexType); 
 	offset = 0;
-    
-	// Set the vertex buffer to active in the input assembler so it can be rendered.
-	deviceContext->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
 
-	/*UINT strides[2] = { sizeof(VertexType), sizeof(InstanceType) };
-	UINT offsets[2] = { 0, 0 };
-	ID3D11Buffer* buffers[2] = { m_vertexBuffer, m_instanceBuffer };
+	if (m_instanceCount > 1 && m_instanceBuffer)
+	{
+		// 인스턴스 버퍼 포함 2개를 동시에 바인딩
+		UINT strides[2] = { sizeof(VertexType), sizeof(InstanceType) };
+		UINT offsets[2] = { 0, 0 };
+		ID3D11Buffer* buffers[2] = { m_vertexBuffer, m_instanceBuffer };
 
-	deviceContext->IASetVertexBuffers(0, 2, buffers, strides, offsets);*/
+		deviceContext->IASetVertexBuffers(0, 2, buffers, strides, offsets);
+		deviceContext->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    // Set the index buffer to active in the input assembler so it can be rendered.
-	deviceContext->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		// 인스턴싱으로 여러 개 복제 렌더링
+		deviceContext->DrawIndexedInstanced(m_indexCount, m_instanceCount, 0, 0, 0);
+	}
+	else {
 
-    // Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
-	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		// Set the vertex buffer to active in the input assembler so it can be rendered.
+		deviceContext->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
 
+		// Set the index buffer to active in the input assembler so it can be rendered.
+		deviceContext->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
+		// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
+		deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	////인스턴싱 호출
-	//deviceContext->DrawIndexedInstanced(m_indexCount, m_instanceCount, 0, 0, 0);
+	}
 
 	return;
 }
@@ -301,32 +275,57 @@ void ModelClass::ReleaseTexture()
 	return;
 }
 
-//void ModelClass::SetupInstancing(ID3D11Device* device, int instanceCount)
-//{
-//	m_instanceCount = instanceCount;
-//
-//	// 인스턴스 데이터 (위치 등)
-//	std::vector<InstanceType> instances(m_instanceCount);
-//	for (int i = 0; i < m_instanceCount; ++i)
-//	{
-//		instances[i].position = XMFLOAT3(i * 3.0f, 0.0f, 0.0f); // 예: X축 간격
-//	}
-//
-//	// 버퍼 생성
-//	D3D11_BUFFER_DESC desc = {};
-//	desc.Usage = D3D11_USAGE_DEFAULT;
-//	desc.ByteWidth = sizeof(InstanceType) * m_instanceCount;
-//	desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-//
-//	D3D11_SUBRESOURCE_DATA data = {};
-//	data.pSysMem = instances.data();
-//
-//	HRESULT hr = device->CreateBuffer(&desc, &data, &m_instanceBuffer);
-//	if (FAILED(hr))
-//	{
-//		// 오류 처리
-//	}
-//}
+void ModelClass::SetupInstancing(ID3D11Device* device, int instanceCount, XMFLOAT3 startPosition)
+{
+	m_instanceCount = instanceCount;
+
+	if (m_instanceCount <= 1)
+	{
+		if (m_instanceBuffer)
+		{
+			m_instanceBuffer->Release();
+			m_instanceBuffer = nullptr;
+		}
+		return;
+	}
+
+	InstanceType* instances = new InstanceType[m_instanceCount];
+
+	// 시작 위치
+	float startX = startPosition.x;
+	float y = startPosition.y;
+	float z = startPosition.z;
+
+	// X축으로 2씩 늘려서 위치 지정
+	for (int i = 0; i < m_instanceCount; ++i)
+	{
+		instances[i].position = XMFLOAT3(startX + i * 2.0f, y, z);
+	}
+
+	D3D11_BUFFER_DESC desc = {};
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.ByteWidth = sizeof(InstanceType) * m_instanceCount;
+	desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+	D3D11_SUBRESOURCE_DATA data = {};
+	data.pSysMem = instances;
+
+	if (m_instanceBuffer)
+	{
+		m_instanceBuffer->Release();
+		m_instanceBuffer = nullptr;
+	}
+
+	HRESULT hr = device->CreateBuffer(&desc, &data, &m_instanceBuffer);
+	delete[] instances;
+
+	if (FAILED(hr))
+	{
+		// 오류 처리
+	}
+}
+
+
 
 bool ModelClass::LoadModel(const WCHAR* filename)
 {

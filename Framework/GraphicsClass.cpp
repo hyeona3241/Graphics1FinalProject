@@ -97,6 +97,8 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		m_Models.push_back(model);
 	}
 
+	XMFLOAT3 startPosition = XMFLOAT3(-5.0f, 5.0f, 1.0f);
+	m_Models[5]->SetupInstancing(m_D3D->GetDevice(), 10, startPosition);
 
 	m_ModelGround = new ModelClass;
 	if (!m_ModelGround)
@@ -267,6 +269,13 @@ bool GraphicsClass::Render(float rotation)
 			worldMatrix *= XMMatrixRotationY(XMConvertToRadians(90.0f)); // Y축 90도 회전
 			worldMatrix *= XMMatrixTranslation(3.5f, 1.0f, 4.0f);  // X: 5, Z: 2
 		}
+		else if (i == 2)
+		{
+			worldMatrix *= XMMatrixScaling(1.5f, 1.5f, 1.5f);    // 크기: 3배
+			//worldMatrix *= XMMatrixRotationY(rotation * 0.5f);   // Y축 회전 (속도 절반)
+			//worldMatrix *= XMMatrixRotationY(XMConvertToRadians(90.0f)); // Y축 90도 회전
+			worldMatrix *= XMMatrixTranslation(2.0f, 1.5f, 0.5f);  // X: 5, Z: 2
+		}
 		else if (i == 3)
 		{
 			worldMatrix *= XMMatrixScaling(5.0f, 5.0f, 5.0f);    // 크기: 3배
@@ -282,17 +291,6 @@ bool GraphicsClass::Render(float rotation)
 			//worldMatrix *= XMMatrixRotationY(XMConvertToRadians(90.0f)); // Y축 90도 회전
 			worldMatrix *= XMMatrixTranslation(-2.0f, 1.3f, 0.5f);  // X: 5, Z: 2
 		}
-		/*else if (i == 5)
-		{
-			m_Models[i]->Render(m_D3D->GetDeviceContext());
-			bool result = m_TextureShader->Render(
-				m_D3D->GetDeviceContext(),
-				m_Models[i]->GetIndexCount(),
-				XMMatrixIdentity(), viewMatrix, projectionMatrix,
-				m_Models[i]->GetTexture()
-			);
-			if (!result) return false;
-		}*/
 		else if (i == 6)
 		{
 			worldMatrix *= XMMatrixScaling(2.0f, 2.0f, 2.0f);    // 크기: 3배
@@ -305,7 +303,7 @@ bool GraphicsClass::Render(float rotation)
 			worldMatrix *= XMMatrixScaling(0.08f, 0.08f, 0.08f);    // 크기: 3배
 			worldMatrix *= XMMatrixRotationX(XMConvertToRadians(90.0f));
 			worldMatrix *= XMMatrixRotationY(rotation * 0.5f);   // Y축 회전 (속도 절반)
-			worldMatrix *= XMMatrixTranslation(0.0f, 0.0f, 0.0f);  // X: 5, Z: 2
+			worldMatrix *= XMMatrixTranslation(0.0f, 0.0f, 3.0f);  // z축 0
 		}
 		else if (i == 8)
 		{
@@ -320,6 +318,20 @@ bool GraphicsClass::Render(float rotation)
 			//worldMatrix *= XMMatrixRotationX(XMConvertToRadians(90.0f));
 			worldMatrix *= XMMatrixRotationY(rotation * 0.5f);   // Y축 회전 (속도 절반)
 			worldMatrix *= XMMatrixTranslation(2.0f, 0.5f, -2.0f);  // X: 5, Z: 2
+		}
+		else if (i == 5)
+		{
+			// Anubis 인스턴싱은 ModelClass에서 알아서 10번 복제 렌더링!
+			m_Models[i]->Render(m_D3D->GetDeviceContext());
+			bool result = m_TextureShader->Render(
+				m_D3D->GetDeviceContext(),
+				m_Models[i]->GetIndexCount(),
+				XMMatrixIdentity(), viewMatrix, projectionMatrix,
+				m_Models[i]->GetTexture()
+			);
+			if (!result) return false;
+
+			continue; // 아래 worldMatrix 변환/렌더링은 건너뛴다!
 		}
 		else // 나머지 모델은 공통 배치
 		{

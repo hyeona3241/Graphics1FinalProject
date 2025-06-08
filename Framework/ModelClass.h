@@ -91,12 +91,12 @@ public:
 	int m_vertexCount, m_indexCount;
 	ModelType* m_model;
 
-//private:
-//	ID3D11Buffer* m_instanceBuffer = nullptr;  // 인스턴스 버퍼
-//	int m_instanceCount = 0;             // 인스턴스 개수
-//
-//public:
-//	void SetupInstancing(ID3D11Device* device, int instanceCount);
+public:
+	void SetupInstancing(ID3D11Device* device, int instanceCount, XMFLOAT3 startPosition);
+
+private:
+	ID3D11Buffer* m_instanceBuffer = nullptr;
+	int m_instanceCount = 1; // 기본값 1 (복제 안됨)
 };
 
 #endif
