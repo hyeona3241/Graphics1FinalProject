@@ -25,6 +25,12 @@ const float SCREEN_DEPTH = 1000.0f;
 const float SCREEN_NEAR = 0.1f;
 
 
+struct VertexType
+{
+	XMFLOAT3 position;
+	XMFLOAT2 texcoord;
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: GraphicsClass
 ////////////////////////////////////////////////////////////////////////////////
@@ -53,6 +59,30 @@ private:
 	ModelClass* m_ModelGround;
 
 	ModelClass* m_InstanceModel = nullptr;
+
+private:
+
+	ModelClass* m_SkyboxModel;
+
+	// 스카이박스용
+	ID3D11Buffer* m_skyboxVertexBuffer = nullptr;
+	ID3D11Buffer* m_skyboxIndexBuffer = nullptr;
+	int m_skyboxIndexCount = 0;
+	ID3D11ShaderResourceView* m_skyboxTexture = nullptr;
+
+	bool InitializeSkybox(ID3D11Device* device);
+	void RenderSkybox(ID3D11DeviceContext* context, XMMATRIX viewMatrix, XMMATRIX projectionMatrix);
+
+private:
+	ID3D11Buffer* m_billboardVertexBuffer = nullptr;
+	ID3D11Buffer* m_billboardIndexBuffer = nullptr;
+	int m_billboardIndexCount = 0;
+
+	ID3D11ShaderResourceView* m_billboardTexture1 = nullptr;
+	ID3D11ShaderResourceView* m_billboardTexture2 = nullptr;
+
+	bool InitializeBillboards(ID3D11Device* device);
+	void RenderBillboards(ID3D11DeviceContext* context, XMMATRIX viewMatrix, XMMATRIX projectionMatrix);
 };
 
 #endif

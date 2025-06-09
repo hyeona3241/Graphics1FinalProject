@@ -168,6 +168,8 @@
   <ItemGroup>
     <Image Include="data\Anubis.dds" />
     <Image Include="data\Anubis2.dds" />
+    <Image Include="data\background.dds" />
+    <Image Include="data\billboard2.dds" />
     <Image Include="data\jar2.dds" />
     <Image Include="data\jar4.dds" />
     <Image Include="data\ornate.dds" />

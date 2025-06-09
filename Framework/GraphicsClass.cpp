@@ -56,7 +56,9 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	m_Camera->SetPosition(0.0f, 3.0f, -8.0f); 
 	m_Camera->SetRotation(15.0f, 0.0f, 0.0f);
 	
-	
+	InitializeSkybox(m_D3D->GetDevice());
+	InitializeBillboards(m_D3D->GetDevice());
+
 	std::vector<std::pair<std::wstring, std::wstring>> modelFiles = {
 	//관
 	{L"./data/ornate.obj",      L"./data/ornate.dds"},
@@ -249,7 +251,13 @@ bool GraphicsClass::Render(float rotation)
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_D3D->GetProjectionMatrix(projectionMatrix);
 
+	RenderSkybox(m_D3D->GetDeviceContext(), viewMatrix, projectionMatrix);
 
+	//XMMATRIX viewMatrix, projectionMatrix;
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_D3D->GetProjectionMatrix(projectionMatrix);
+
+	RenderBillboards(m_D3D->GetDeviceContext(), viewMatrix, projectionMatrix);
 
 	//여기서 모델링
 	for (size_t i = 0; i < m_Models.size(); ++i)
@@ -392,3 +400,170 @@ bool GraphicsClass::Render(float rotation)
 
 	return true;
 }
+
+bool GraphicsClass::InitializeSkybox(ID3D11Device* device)
+{
+	// 2D 풀스크린 Quad 버텍스 (좌하단 기준으로 0,0 ~ 1,1)
+	VertexType vertices[] =
+	{
+		{ XMFLOAT3(-1.0f,  1.0f, 0.999f), XMFLOAT2(0.0f, 0.0f) }, // 좌상단
+		{ XMFLOAT3(1.0f,  1.0f, 0.999f), XMFLOAT2(1.0f, 0.0f) }, // 우상단
+		{ XMFLOAT3(-1.0f, -1.0f, 0.999f), XMFLOAT2(0.0f, 1.0f) }, // 좌하단
+		{ XMFLOAT3(1.0f, -1.0f, 0.999f), XMFLOAT2(1.0f, 1.0f) }, // 우하단
+	};
+
+	unsigned long indices[] =
+	{
+		0, 1, 2,
+		2, 1, 3
+	};
+	m_skyboxIndexCount = 6;
+
+	// 정점 버퍼 생성
+	D3D11_BUFFER_DESC vbd = {};
+	vbd.Usage = D3D11_USAGE_DEFAULT;
+	vbd.ByteWidth = sizeof(VertexType) * 4;
+	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+	D3D11_SUBRESOURCE_DATA vinitData = {};
+	vinitData.pSysMem = vertices;
+
+	HRESULT hr = device->CreateBuffer(&vbd, &vinitData, &m_skyboxVertexBuffer);
+	if (FAILED(hr)) return false;
+
+	// 인덱스 버퍼 생성
+	D3D11_BUFFER_DESC ibd = {};
+	ibd.Usage = D3D11_USAGE_DEFAULT;
+	ibd.ByteWidth = sizeof(unsigned long) * m_skyboxIndexCount;
+	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+	D3D11_SUBRESOURCE_DATA iinitData = {};
+	iinitData.pSysMem = indices;
+
+	hr = device->CreateBuffer(&ibd, &iinitData, &m_skyboxIndexBuffer);
+	if (FAILED(hr)) return false;
+
+	// 배경 텍스처 로드
+	m_SkyboxModel = new ModelClass;
+	if (!m_SkyboxModel) return false;
+
+	bool result = m_SkyboxModel->LoadTexture(device, L"./data/background.dds");
+	if (!result) return false;
+
+	m_skyboxTexture = m_SkyboxModel->GetTexture();
+
+	return true;
+}
+
+void GraphicsClass::RenderSkybox(ID3D11DeviceContext* context, XMMATRIX viewMatrix, XMMATRIX projectionMatrix)
+{
+	// 깊이 쓰기 끄기
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = TRUE;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+
+	ID3D11DepthStencilState* dsState;
+	m_D3D->GetDevice()->CreateDepthStencilState(&dsDesc, &dsState);
+	context->OMSetDepthStencilState(dsState, 0);
+
+	// 2D Quad이므로 월드/뷰/프로젝션 행렬을 단위행렬로
+	XMMATRIX identityMatrix = XMMatrixIdentity();
+
+	// 정점/인덱스 버퍼 바인딩
+	UINT stride = sizeof(VertexType);
+	UINT offset = 0;
+	context->IASetVertexBuffers(0, 1, &m_skyboxVertexBuffer, &stride, &offset);
+	context->IASetIndexBuffer(m_skyboxIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// 스카이박스 렌더링 (뷰/프로젝션 무시)
+	m_TextureShader->Render(context, m_skyboxIndexCount,0,
+		identityMatrix, identityMatrix, identityMatrix,
+		m_skyboxTexture);
+
+	// 깊이 쓰기 다시 켜기
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	m_D3D->GetDevice()->CreateDepthStencilState(&dsDesc, &dsState);
+	context->OMSetDepthStencilState(dsState, 0);
+
+	dsState->Release();
+}
+
+bool GraphicsClass::InitializeBillboards(ID3D11Device* device)
+{
+	// Billboard 메시 (Quad)
+	float aspectRatio = 9.0f / 16.0f; // 0.5625
+
+	VertexType vertices[] =
+	{
+		{ XMFLOAT3(-aspectRatio,  1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) }, // 좌상단
+		{ XMFLOAT3(aspectRatio,  1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) }, // 우상단
+		{ XMFLOAT3(-aspectRatio, -1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) }, // 좌하단
+		{ XMFLOAT3(aspectRatio, -1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }, // 우하단
+	};
+
+	unsigned long indices[] =
+	{
+		0, 1, 2,
+		2, 1, 3
+	};
+	m_billboardIndexCount = 6;
+
+	// 정점 버퍼
+	D3D11_BUFFER_DESC vbd = { sizeof(VertexType) * 4, D3D11_USAGE_DEFAULT, D3D11_BIND_VERTEX_BUFFER };
+	D3D11_SUBRESOURCE_DATA vinit = { vertices };
+	HRESULT hr = device->CreateBuffer(&vbd, &vinit, &m_billboardVertexBuffer);
+	if (FAILED(hr)) return false;
+
+	// 인덱스 버퍼
+	D3D11_BUFFER_DESC ibd = { sizeof(unsigned long) * m_billboardIndexCount, D3D11_USAGE_DEFAULT, D3D11_BIND_INDEX_BUFFER };
+	D3D11_SUBRESOURCE_DATA iinit = { indices };
+	hr = device->CreateBuffer(&ibd, &iinit, &m_billboardIndexBuffer);
+	if (FAILED(hr)) return false;
+
+	// Billboard 1
+	ModelClass* tempModel1 = new ModelClass;
+	tempModel1->LoadTexture(device, L"./data/billboard2.dds");
+	m_billboardTexture1 = tempModel1->GetTexture();
+	delete tempModel1;
+
+	// Billboard 2
+	ModelClass* tempModel2 = new ModelClass;
+	tempModel2->LoadTexture(device, L"./data/billboard2.dds");
+	m_billboardTexture2 = tempModel2->GetTexture();
+	delete tempModel2;
+
+	return true;
+}
+
+
+void GraphicsClass::RenderBillboards(ID3D11DeviceContext* context, XMMATRIX viewMatrix, XMMATRIX projectionMatrix)
+{
+	// 예제: 2개의 빌보딩 위치
+	XMFLOAT3 positions[] = { XMFLOAT3(5.0f, 2.0f, 3.0f), XMFLOAT3(-3.0f, 2.0f, 5.0f) };
+	ID3D11ShaderResourceView* textures[] = { m_billboardTexture1, m_billboardTexture2 };
+
+	for (int i = 0; i < 2; ++i)
+	{
+		// Billboard 회전 (카메라 회전만 반영)
+		XMMATRIX viewRotation = viewMatrix;
+		viewRotation.r[3] = XMVectorSet(0, 0, 0, 1);
+		viewRotation = XMMatrixTranspose(viewRotation); // 반전
+		XMMATRIX translation = XMMatrixTranslation(positions[i].x, positions[i].y, positions[i].z);
+		XMMATRIX worldMatrix = XMMatrixMultiply(viewRotation, translation);
+
+		// 정점/인덱스 버퍼
+		UINT stride = sizeof(VertexType);
+		UINT offset = 0;
+		context->IASetVertexBuffers(0, 1, &m_billboardVertexBuffer, &stride, &offset);
+		context->IASetIndexBuffer(m_billboardIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		// 렌더링
+		m_TextureShader->Render(context, m_billboardIndexCount, 0,
+			worldMatrix, viewMatrix, projectionMatrix,
+			textures[i]);
+	}
+}
+
