@@ -97,8 +97,10 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		m_Models.push_back(model);
 	}
 
-	XMFLOAT3 startPosition = XMFLOAT3(-5.0f, 5.0f, 1.0f);
-	m_Models[5]->SetupInstancing(m_D3D->GetDevice(), 10, startPosition);
+
+	XMFLOAT3 startPosition = XMFLOAT3(-3.0f, 1.0f, 10.0f);
+	m_InstanceModel = m_Models[5];
+	m_InstanceModel->SetupInstancing(m_D3D->GetDevice(), 10, startPosition); // 10개의 복제본, 시작 위치
 
 	m_ModelGround = new ModelClass;
 	if (!m_ModelGround)
@@ -303,7 +305,7 @@ bool GraphicsClass::Render(float rotation)
 			worldMatrix *= XMMatrixScaling(0.08f, 0.08f, 0.08f);    // 크기: 3배
 			worldMatrix *= XMMatrixRotationX(XMConvertToRadians(90.0f));
 			worldMatrix *= XMMatrixRotationY(rotation * 0.5f);   // Y축 회전 (속도 절반)
-			worldMatrix *= XMMatrixTranslation(0.0f, 0.0f, 3.0f);  // z축 0
+			worldMatrix *= XMMatrixTranslation(0.0f, 0.0f, 0.0f);  // z축 0
 		}
 		else if (i == 8)
 		{
@@ -321,24 +323,34 @@ bool GraphicsClass::Render(float rotation)
 		}
 		else if (i == 5)
 		{
-			// Anubis 인스턴싱은 ModelClass에서 알아서 10번 복제 렌더링!
+			// 인스턴싱 전용 처리
 			m_Models[i]->Render(m_D3D->GetDeviceContext());
+
+			// 단위행렬로 지정
+			XMMATRIX identityMatrix = XMMatrixIdentity();
+
+			// isInstancing=true로 지정
+			m_TextureShader->SetInstancing(true);
+
 			bool result = m_TextureShader->Render(
 				m_D3D->GetDeviceContext(),
 				m_Models[i]->GetIndexCount(),
-				XMMatrixIdentity(), viewMatrix, projectionMatrix,
+				identityMatrix, viewMatrix, projectionMatrix,
 				m_Models[i]->GetTexture()
 			);
 			if (!result) return false;
 
-			continue; // 아래 worldMatrix 변환/렌더링은 건너뛴다!
+			// 인스턴싱 종료 (다른 모델은 일반)
+			m_TextureShader->SetInstancing(false);
+
+			continue;
 		}
 		else // 나머지 모델은 공통 배치
 		{
 			float offsetX = (static_cast<float>(i) - (m_Models.size() / 2.0f)) * 3.0f;
 			worldMatrix *= XMMatrixScaling(2.0f, 2.0f, 2.0f);
 			worldMatrix *= XMMatrixRotationY(rotation);
-			worldMatrix *= XMMatrixTranslation(offsetX, 0.3f, 0.0f);
+			worldMatrix *= XMMatrixTranslation(offsetX, 2.0f, 0.0f);
 		}
 
 		// 렌더
@@ -351,7 +363,6 @@ bool GraphicsClass::Render(float rotation)
 		);
 		if (!result) return false;
 	}
-
 
 
 

@@ -158,17 +158,26 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const
 	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[1].InstanceDataStepRate = 0;
 
-	// Instance Slot (InputSlot 1)
+	// Instance Slot (InputSlot 1): instancePos
 	polygonLayout[2].SemanticName = "TEXCOORD";
 	polygonLayout[2].SemanticIndex = 1;
 	polygonLayout[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	polygonLayout[2].InputSlot = 1; // 인스턴스용 버퍼는 슬롯 1!
+	polygonLayout[2].InputSlot = 1;
 	polygonLayout[2].AlignedByteOffset = 0;
 	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
 	polygonLayout[2].InstanceDataStepRate = 1;
 
-	// InputLayout 생성
-	numElements = 3;
+	//// Instance Slot (InputSlot 1): instanceScale
+	//polygonLayout[3].SemanticName = "TEXCOORD";
+	//polygonLayout[3].SemanticIndex = 2;
+	//polygonLayout[3].Format = DXGI_FORMAT_R32G32B32_FLOAT; // float3이니까!
+	//polygonLayout[3].InputSlot = 1;
+	//polygonLayout[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	//polygonLayout[3].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+	//polygonLayout[3].InstanceDataStepRate = 1;
+
+	numElements = 3; // 기존 3 → 4로 변경
+
 	result = device->CreateInputLayout(polygonLayout, numElements,
 		vertexShaderBuffer->GetBufferPointer(),
 		vertexShaderBuffer->GetBufferSize(),
@@ -364,6 +373,12 @@ bool TextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	dataPtr->view = viewMatrix;
 	dataPtr->projection = projectionMatrix;
 
+	// isInstancing 플래그 추가
+	dataPtr->isInstancing = m_useInstancing ? 1 : 0;
+	dataPtr->padding[0] = 0.0f;
+	dataPtr->padding[1] = 0.0f;
+	dataPtr->padding[2] = 0.0f;
+
 	// Unlock the constant buffer.
     deviceContext->Unmap(m_matrixBuffer, 0);
 
@@ -397,4 +412,9 @@ void TextureShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int in
 	deviceContext->DrawIndexed(indexCount, 0, 0);
 
 	return;
+}
+
+void TextureShaderClass::SetInstancing(bool enable)
+{
+	m_useInstancing = enable;
 }

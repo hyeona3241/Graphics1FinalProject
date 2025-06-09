@@ -51,6 +51,8 @@ private:
 
 	std::vector<ModelClass*> m_Models;
 	ModelClass* m_ModelGround;
+
+	ModelClass* m_InstanceModel = nullptr;
 };
 
 #endif

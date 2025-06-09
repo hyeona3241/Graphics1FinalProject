@@ -38,6 +38,7 @@ private:
 	struct InstanceType
 	{
 		XMFLOAT3 position;  // 각 인스턴스의 위치
+		float scale;
 	};
 
 	struct FaceType

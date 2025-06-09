@@ -32,6 +32,8 @@ private:
 		XMMATRIX world;
 		XMMATRIX view;
 		XMMATRIX projection;
+		int isInstancing;
+		float padding[3];
 	};
 
 public:
@@ -62,6 +64,11 @@ private:
 	ID3D11SamplerState* m_linearState;       // 리니어 필터
 	ID3D11SamplerState* m_anisoState;        // 이방성 필터
 	bool                m_useAnisotropic;
+
+public:
+	bool m_useInstancing; // 이 멤버를 추가!
+
+	void SetInstancing(bool enable);
 };
 
 #endif

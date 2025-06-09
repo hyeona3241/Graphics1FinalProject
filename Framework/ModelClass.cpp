@@ -210,7 +210,7 @@ void ModelClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 
 	if (m_instanceCount > 1 && m_instanceBuffer)
 	{
-		// 인스턴스 버퍼 포함 2개를 동시에 바인딩
+		// 인스턴스 버퍼와 정점 버퍼 동시에 바인딩
 		UINT strides[2] = { sizeof(VertexType), sizeof(InstanceType) };
 		UINT offsets[2] = { 0, 0 };
 		ID3D11Buffer* buffers[2] = { m_vertexBuffer, m_instanceBuffer };
@@ -219,8 +219,10 @@ void ModelClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 		deviceContext->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 		deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		// 인스턴싱으로 여러 개 복제 렌더링
-		deviceContext->DrawIndexedInstanced(m_indexCount, m_instanceCount, 0, 0, 0);
+		wchar_t debug[128];
+		swprintf(debug, 128, L"DrawIndexedInstanced called! instanceCount=%d\n", m_instanceCount);
+		OutputDebugString(debug);
+
 	}
 	else {
 
@@ -300,6 +302,7 @@ void ModelClass::SetupInstancing(ID3D11Device* device, int instanceCount, XMFLOA
 	for (int i = 0; i < m_instanceCount; ++i)
 	{
 		instances[i].position = XMFLOAT3(startX + i * 2.0f, y, z);
+		instances[i].scale = 1.0f + i * 0.5f; // 예: 점점 커지게
 	}
 
 	D3D11_BUFFER_DESC desc = {};
