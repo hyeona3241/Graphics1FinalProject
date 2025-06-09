@@ -98,7 +98,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 
-	XMFLOAT3 startPosition = XMFLOAT3(-3.0f, 1.0f, 10.0f);
+	XMFLOAT3 startPosition = XMFLOAT3(-7.0f, 2.0f, 11.0f);
 	m_InstanceModel = m_Models[5];
 	m_InstanceModel->SetupInstancing(m_D3D->GetDevice(), 10, startPosition); // 10개의 복제본, 시작 위치
 
@@ -335,6 +335,7 @@ bool GraphicsClass::Render(float rotation)
 			bool result = m_TextureShader->Render(
 				m_D3D->GetDeviceContext(),
 				m_Models[i]->GetIndexCount(),
+				m_Models[i]->GetInstanceCount(),
 				identityMatrix, viewMatrix, projectionMatrix,
 				m_Models[i]->GetTexture()
 			);
@@ -358,6 +359,7 @@ bool GraphicsClass::Render(float rotation)
 		bool result = m_TextureShader->Render(
 			m_D3D->GetDeviceContext(),
 			m_Models[i]->GetIndexCount(),
+			m_Models[i]->GetInstanceCount(),
 			worldMatrix, viewMatrix, projectionMatrix,
 			m_Models[i]->GetTexture()
 		);
@@ -378,6 +380,7 @@ bool GraphicsClass::Render(float rotation)
 	result = m_TextureShader->Render(
 		m_D3D->GetDeviceContext(),
 		m_ModelGround->GetIndexCount(),
+		m_ModelGround->GetInstanceCount(),
 		worldMatrix, viewMatrix, projectionMatrix,
 		m_ModelGround->GetTexture()
 	);

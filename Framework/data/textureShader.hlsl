@@ -5,7 +5,7 @@ cbuffer MatrixBuffer
 	matrix viewMatrix;
 	matrix projectionMatrix;
     int isInstancing;
-    float3 padding;
+    float4 padding;
 };
 
 
@@ -18,7 +18,7 @@ struct VertexInputType
     float4 position : POSITION;
     float2 tex : TEXCOORD0;
     float3 instancePos : TEXCOORD1;
-    //float3 instanceScale : TEXCOORD2;
+    float4 instanceScale : TEXCOORD2;
 };
 
 struct PixelInputType
@@ -57,7 +57,7 @@ PixelInputType TextureVertexShader(VertexInputType input)
     // 인스턴싱이면 instancePos를 더해줌
     if (isInstancing == 1)
     {
-        //pos *= input.instanceScale; // 스케일 먼저!
+        pos *= 2.0f; // 스케일 먼저!
         pos += input.instancePos; // 위치 적용
     }
 
@@ -96,7 +96,7 @@ struct VS_INPUT
     float3 position : POSITION;
     float2 tex : TEXCOORD0;
     float3 instancePos : TEXCOORD1;
-    float instanceScale : TEXCOORD2;
+    float3 instanceScale : TEXCOORD2;
 };
 
 VS_OUTPUT VS(VS_INPUT input)
@@ -104,7 +104,7 @@ VS_OUTPUT VS(VS_INPUT input)
     VS_OUTPUT output;
 
     // 스케일 적용
-    float3 scaledPos = input.position * input.instanceScale;
+    float3 scaledPos = input.position.xyz * input.instanceScale.xyz; // 세 축 모두 곱하기
     float3 worldPos = scaledPos + input.instancePos;
 
     float4 pos = mul(float4(worldPos, 1.0f), worldMatrix);

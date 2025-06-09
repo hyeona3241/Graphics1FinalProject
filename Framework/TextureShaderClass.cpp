@@ -52,7 +52,7 @@ void TextureShaderClass::Shutdown()
 }
 
 
-bool TextureShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, 
+bool TextureShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, int instanceCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix,
 								XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
 {
 	bool result;
@@ -66,7 +66,7 @@ bool TextureShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCou
 	}
 
 	// Now render the prepared buffers with the shader.
-	RenderShader(deviceContext, indexCount);
+	RenderShader(deviceContext, indexCount, instanceCount);
 
 	return true;
 }
@@ -78,7 +78,7 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[4];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
     D3D11_SAMPLER_DESC samplerDesc;
@@ -144,7 +144,7 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const
 	// Vertex Slot (InputSlot 0)
 	polygonLayout[0].SemanticName = "POSITION";
 	polygonLayout[0].SemanticIndex = 0;
-	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT; // float3
 	polygonLayout[0].InputSlot = 0;
 	polygonLayout[0].AlignedByteOffset = 0;
 	polygonLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
@@ -152,31 +152,30 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, const
 
 	polygonLayout[1].SemanticName = "TEXCOORD";
 	polygonLayout[1].SemanticIndex = 0;
-	polygonLayout[1].Format = DXGI_FORMAT_R32G32_FLOAT;
+	polygonLayout[1].Format = DXGI_FORMAT_R32G32_FLOAT; // float2
 	polygonLayout[1].InputSlot = 0;
 	polygonLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[1].InstanceDataStepRate = 0;
 
-	// Instance Slot (InputSlot 1): instancePos
+	// Instance Slot (InputSlot 1)
 	polygonLayout[2].SemanticName = "TEXCOORD";
 	polygonLayout[2].SemanticIndex = 1;
-	polygonLayout[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[2].Format = DXGI_FORMAT_R32G32B32_FLOAT; // float3
 	polygonLayout[2].InputSlot = 1;
 	polygonLayout[2].AlignedByteOffset = 0;
 	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
 	polygonLayout[2].InstanceDataStepRate = 1;
 
-	//// Instance Slot (InputSlot 1): instanceScale
-	//polygonLayout[3].SemanticName = "TEXCOORD";
-	//polygonLayout[3].SemanticIndex = 2;
-	//polygonLayout[3].Format = DXGI_FORMAT_R32G32B32_FLOAT; // float3이니까!
-	//polygonLayout[3].InputSlot = 1;
-	//polygonLayout[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-	//polygonLayout[3].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
-	//polygonLayout[3].InstanceDataStepRate = 1;
+	polygonLayout[3].SemanticName = "TEXCOORD";
+	polygonLayout[3].SemanticIndex = 2;
+	polygonLayout[3].Format = DXGI_FORMAT_R32G32B32A32_FLOAT; // float4
+	polygonLayout[3].InputSlot = 1;
+	polygonLayout[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[3].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+	polygonLayout[3].InstanceDataStepRate = 1;
 
-	numElements = 3; // 기존 3 → 4로 변경
+	numElements = 4; // 기존 3 → 4로 변경
 
 	result = device->CreateInputLayout(polygonLayout, numElements,
 		vertexShaderBuffer->GetBufferPointer(),
@@ -395,24 +394,33 @@ bool TextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 }
 
 
-void TextureShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
+void TextureShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount, int instanceCount)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(m_layout);
 
-    // Set the vertex and pixel shaders that will be used to render this triangle.
-    deviceContext->VSSetShader(m_vertexShader, NULL, 0);
-    deviceContext->PSSetShader(m_pixelShader, NULL, 0);
+	// Set the vertex and pixel shaders.
+	deviceContext->VSSetShader(m_vertexShader, NULL, 0);
+	deviceContext->PSSetShader(m_pixelShader, NULL, 0);
 
 	// Set the sampler state in the pixel shader.
 	ID3D11SamplerState* samp = m_useAnisotropic ? m_anisoState : m_linearState;
 	deviceContext->PSSetSamplers(0, 1, &samp);
 
-	// Render the triangle.
-	deviceContext->DrawIndexed(indexCount, 0, 0);
+	if (m_useInstancing)
+	{
+		// 인스턴싱을 위한 DrawIndexedInstanced!
+		deviceContext->DrawIndexedInstanced(indexCount, instanceCount, 0, 0, 0);
+	}
+	else
+	{
+		// 기존의 일반 DrawIndexed
+		deviceContext->DrawIndexed(indexCount, 0, 0);
+	}
 
 	return;
 }
+
 
 void TextureShaderClass::SetInstancing(bool enable)
 {

@@ -223,6 +223,10 @@ void ModelClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 		swprintf(debug, 128, L"DrawIndexedInstanced called! instanceCount=%d\n", m_instanceCount);
 		OutputDebugString(debug);
 
+		wchar_t debug1[128];
+		swprintf(debug1, 128, L"sizeof(InstanceType)=%d\n", sizeof(InstanceType));
+		OutputDebugString(debug1);
+
 	}
 	else {
 
@@ -298,11 +302,21 @@ void ModelClass::SetupInstancing(ID3D11Device* device, int instanceCount, XMFLOA
 	float y = startPosition.y;
 	float z = startPosition.z;
 
-	// X축으로 2씩 늘려서 위치 지정
+	// X축으로 1씩 늘려서 위치 지정
 	for (int i = 0; i < m_instanceCount; ++i)
 	{
-		instances[i].position = XMFLOAT3(startX + i * 2.0f, y, z);
-		instances[i].scale = 1.0f + i * 0.5f; // 예: 점점 커지게
+		instances[i].position = XMFLOAT3(startX + i * 1.5f, y, z);
+
+		float scaleValue = 1.0f;
+		instances[i].scale = XMFLOAT3(scaleValue, scaleValue, scaleValue); // XMFLOAT4 → XMFLOAT3
+
+		wchar_t debug[128];
+		swprintf(debug, 128, L"Instance[%d] Pos=(%f,%f,%f) Scale=(%f,%f,%f)\n",
+			i,
+			instances[i].position.x, instances[i].position.y, instances[i].position.z,
+			instances[i].scale.x, instances[i].scale.y, instances[i].scale.z
+		);
+		OutputDebugString(debug);
 	}
 
 	D3D11_BUFFER_DESC desc = {};
@@ -326,6 +340,11 @@ void ModelClass::SetupInstancing(ID3D11Device* device, int instanceCount, XMFLOA
 	{
 		// 오류 처리
 	}
+}
+
+int ModelClass::GetInstanceCount() const
+{
+	return m_instanceCount;
 }
 
 

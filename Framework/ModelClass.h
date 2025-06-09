@@ -37,9 +37,12 @@ private:
 
 	struct InstanceType
 	{
-		XMFLOAT3 position;  // 각 인스턴스의 위치
-		float scale;
+		XMFLOAT3 position;  // 12바이트
+		float pad1;         // 4바이트 (정렬용 패딩)
+		XMFLOAT3 scale;     // 12바이트
+		float pad2;         // 4바이트 (정렬용 패딩)
 	};
+
 
 	struct FaceType
 	{
@@ -94,6 +97,7 @@ public:
 
 public:
 	void SetupInstancing(ID3D11Device* device, int instanceCount, XMFLOAT3 startPosition);
+	int GetInstanceCount() const;
 
 private:
 	ID3D11Buffer* m_instanceBuffer = nullptr;
