@@ -140,13 +140,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cameraclass.cpp" />
+    <ClCompile Include="cpuclass.cpp" />
     <ClCompile Include="d3dclass.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
+    <ClCompile Include="fontclass.cpp" />
+    <ClCompile Include="FontShaderClass.cpp" />
+    <ClCompile Include="fpsclass.cpp" />
     <ClCompile Include="graphicsclass.cpp" />
     <ClCompile Include="inputclass.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="modelclass.cpp" />
     <ClCompile Include="systemclass.cpp" />
+    <ClCompile Include="textclass.cpp" />
     <ClCompile Include="textureclass.cpp" />
     <ClCompile Include="textureshaderclass.cpp" />
     <ClCompile Include="TimerClass.cpp" />
@@ -154,12 +159,17 @@
   <ItemGroup>
     <ClInclude Include="AlignedAllocationPolicy.h" />
     <ClInclude Include="cameraclass.h" />
+    <ClInclude Include="cpuclass.h" />
     <ClInclude Include="d3dclass.h" />
     <ClInclude Include="DDSTextureLoader.h" />
+    <ClInclude Include="fontclass.h" />
+    <ClInclude Include="FontShaderClass.h" />
+    <ClInclude Include="fpsclass.h" />
     <ClInclude Include="graphicsclass.h" />
     <ClInclude Include="inputclass.h" />
     <ClInclude Include="modelclass.h" />
     <ClInclude Include="systemclass.h" />
+    <ClInclude Include="textclass.h" />
     <ClInclude Include="textureclass.h" />
     <ClInclude Include="textureshaderclass.h" />
     <ClInclude Include="TimerClass.h" />
@@ -172,6 +182,7 @@
     <Image Include="data\Anubis2.dds" />
     <Image Include="data\background.dds" />
     <Image Include="data\billboard2.dds" />
+    <Image Include="data\font.dds" />
     <Image Include="data\jar2.dds" />
     <Image Include="data\jar4.dds" />
     <Image Include="data\ornate.dds" />

@@ -15,6 +15,7 @@
 #include <vector>
 #include <string>
 #include "timerclass.h"
+#include "textclass.h"
 
 
 /////////////
@@ -45,6 +46,7 @@ public:
 	bool Initialize(int, int, HWND);
 	void Shutdown();
 	bool Frame();
+	bool Frame(int, int);
 
 	void SetAnisotropicFilter(bool enable);
 
@@ -88,6 +90,11 @@ private:
 	void RenderBillboards(ID3D11DeviceContext* context, XMMATRIX viewMatrix, XMMATRIX projectionMatrix);
 
 	void HandleInput();
+
+	TextClass* m_Text;
+
+	int m_screenWidth;
+	int m_screenHeight;
 
 public:
 	void SetTimer(TimerClass* timer);

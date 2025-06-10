@@ -44,6 +44,21 @@
     <ClCompile Include="TimerClass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="FontShaderClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="cpuclass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="fontclass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="fpsclass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="textclass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dclass.h">
@@ -77,6 +92,21 @@
       <Filter>소스 파일</Filter>
     </ClInclude>
     <ClInclude Include="TimerClass.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="FontShaderClass.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="cpuclass.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="fontclass.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="fpsclass.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="textclass.h">
       <Filter>소스 파일</Filter>
     </ClInclude>
   </ItemGroup>
@@ -123,6 +153,9 @@
       <Filter>리소스 파일</Filter>
     </Image>
     <Image Include="data\billboard2.dds">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="data\font.dds">
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>

@@ -10,6 +10,7 @@ GraphicsClass::GraphicsClass()
 	m_Camera = 0;
 	m_TextureShader = 0;
 
+	m_Text = 0;
 }
 
 
@@ -26,17 +27,21 @@ GraphicsClass::~GraphicsClass()
 bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 {
 	bool result;
+	XMMATRIX baseViewMatrix;
+
+	m_screenWidth = screenWidth;    // Initialize 함수 인자로 받아오는 해상도
+	m_screenHeight = screenHeight;
 
 	// Create the Direct3D object.
 	m_D3D = new D3DClass;
-	if(!m_D3D)
+	if (!m_D3D)
 	{
 		return false;
 	}
 
 	// Initialize the Direct3D object.
 	result = m_D3D->Initialize(screenWidth, screenHeight, VSYNC_ENABLED, hwnd, FULL_SCREEN, SCREEN_DEPTH, SCREEN_NEAR);
-	if(!result)
+	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize Direct3D.", L"Error", MB_OK);
 		return false;
@@ -44,7 +49,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 	// Create the camera object.
 	m_Camera = new CameraClass;
-	if(!m_Camera)
+	if (!m_Camera)
 	{
 		return false;
 	}
@@ -53,33 +58,33 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//m_Camera->SetPosition(0.0f, 0.0f, -5.0f);	// for cube model
 //	m_Camera->SetPosition(0.0f, 0.5f, -3.0f);	// for chair model
 
-	m_Camera->SetPosition(0.0f, 3.0f, -8.0f); 
+	m_Camera->SetPosition(0.0f, 3.0f, -8.0f);
 	m_Camera->SetRotation(15.0f, 0.0f, 0.0f);
-	
+
 	InitializeSkybox(m_D3D->GetDevice());
 	InitializeBillboards(m_D3D->GetDevice());
 
 	std::vector<std::pair<std::wstring, std::wstring>> modelFiles = {
-	//관
-	{L"./data/ornate.obj",      L"./data/ornate.dds"},
-	//관2
-	{L"./data/ornate2.obj", L"./data/ornate2.dds"},
-	//동상
-	{L"./data/statue.obj",       L"./data/statue.dds"},
-	//벽
-	{L"./data/wall.obj",      L"./data/wall.dds"},
-	//아누비스
-	{L"./data/Anubis2.obj",      L"./data/Anubis2.dds"},
-	//아누비스 동상
-	{L"./data/Anubis.obj",      L"./data/Anubis.dds"},
-	//제단
-	{L"./data/ritual.obj", L"./data/ritual.dds"},
-	//투탕카멘
-	{L"./data/tstatue.obj",       L"./data/tstatue.dds"},
-	//항아리2
-	{L"./data/jar2.obj",      L"./data/jar2.dds"},
-	//항아리4
-	{L"./data/jar4.obj",      L"./data/jar4.dds"}
+		//관
+		{L"./data/ornate.obj",      L"./data/ornate.dds"},
+		//관2
+		{L"./data/ornate2.obj", L"./data/ornate2.dds"},
+		//동상
+		{L"./data/statue.obj",       L"./data/statue.dds"},
+		//벽
+		{L"./data/wall.obj",      L"./data/wall.dds"},
+		//아누비스
+		{L"./data/Anubis2.obj",      L"./data/Anubis2.dds"},
+		//아누비스 동상
+		{L"./data/Anubis.obj",      L"./data/Anubis.dds"},
+		//제단
+		{L"./data/ritual.obj", L"./data/ritual.dds"},
+		//투탕카멘
+		{L"./data/tstatue.obj",       L"./data/tstatue.dds"},
+		//항아리2
+		{L"./data/jar2.obj",      L"./data/jar2.dds"},
+		//항아리4
+		{L"./data/jar4.obj",      L"./data/jar4.dds"}
 	};
 
 	for (const auto& pair : modelFiles)
@@ -112,13 +117,13 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		{ -20, 0,  20,   0,0,   0,1,0 },
 		{  20, 0,  20,   5,0,   0,1,0 },
 		{  20, 0, -20,   5,5,   0,1,0 },
-		
+
 		{ -20, 0,  20,   0,0,   0,1,0 },
 		{  20, 0, -20,   5,5,   0,1,0 },
 		{ -20, 0, -20,   0,5,   0,1,0 },
 	};
 
-	m_ModelGround->m_vertexCount = 6; 
+	m_ModelGround->m_vertexCount = 6;
 	m_ModelGround->m_indexCount = 6;
 	m_ModelGround->m_model = groundVerts;
 
@@ -138,21 +143,35 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 	// Create the texture shader object.
 	m_TextureShader = new TextureShaderClass;
-	if(!m_TextureShader)
+	if (!m_TextureShader)
 	{
 		return false;
 	}
 
 	// Initialize the texture shader object.
 	result = m_TextureShader->Initialize(m_D3D->GetDevice(), hwnd);
-	if(!result)
+	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the texture shader object.", L"Error", MB_OK);
 		return false;
 	}
 
-	//// 아누비스 모델만 인스턴싱 설정
-	//m_Models[5]->SetupInstancing(m_D3D->GetDevice(), 10); // 예: 10개 복제
+	m_Camera->Render();
+	m_Camera->GetViewMatrix(baseViewMatrix);
+
+	m_Text = new TextClass;
+	if (!m_Text)
+	{
+		return false;
+	}
+
+	// Initialize the text object.
+	result = m_Text->Initialize(m_D3D->GetDevice(), m_D3D->GetDeviceContext(), hwnd, screenWidth, screenHeight, baseViewMatrix);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the text object.", L"Error", MB_OK);
+		return false;
+	}
 
 	return true;
 }
@@ -161,7 +180,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 void GraphicsClass::Shutdown()
 {
 	// Release the texture shader object.
-	if(m_TextureShader)
+	if (m_TextureShader)
 	{
 		m_TextureShader->Shutdown();
 		delete m_TextureShader;
@@ -188,14 +207,14 @@ void GraphicsClass::Shutdown()
 
 
 	// Release the camera object.
-	if(m_Camera)
+	if (m_Camera)
 	{
 		delete m_Camera;
 		m_Camera = 0;
 	}
 
 	// Release the D3D object.
-	if(m_D3D)
+	if (m_D3D)
 	{
 		m_D3D->Shutdown();
 		delete m_D3D;
@@ -225,13 +244,80 @@ bool GraphicsClass::Frame()
 
 	// Render the graphics scene.
 	result = Render(rotation);
-	if(!result)
+	if (!result)
 	{
 		return false;
 	}
 
 	return true;
 }
+
+bool GraphicsClass::Frame(int fps, int cpu)
+{
+	bool result;
+	static float rotation = 0.0f;
+
+	HandleInput();
+	m_Camera->UpdateCamera();
+
+	// Update the rotation variable each frame.
+	rotation += (float)XM_PI * 0.005f;
+	if (rotation > 360.0f)
+	{
+		rotation -= 360.0f;
+	}
+
+	// Set the frames per second.
+	result = m_Text->SetFPS(fps, m_D3D->GetDeviceContext());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Set the cpu usage.
+	result = m_Text->SetCPU(cpu, m_D3D->GetDeviceContext());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Set object count.
+	int objectCount = 12; // 혹은 객체 수를 계산하는 함수/변수로 대체
+	result = m_Text->SetObjectCount(objectCount, m_D3D->GetDeviceContext());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Set polygon count.
+	int polygonCount = 105800; // 혹은 폴리곤 수를 계산하는 함수/변수로 대체
+	result = m_Text->SetPolygonCount(polygonCount, m_D3D->GetDeviceContext());
+	if (!result)
+	{
+		return false;
+	}
+
+	
+	result = m_Text->SetResolution(m_screenWidth, m_screenHeight, m_D3D->GetDeviceContext());
+	if (!result)
+	{
+		return false;
+	}
+
+
+	// Render the graphics scene.
+	result = Render(rotation);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Set the position of the camera.
+//	m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
+
+	return true;
+}
+
 
 void GraphicsClass::SetAnisotropicFilter(bool enable)
 {
@@ -241,7 +327,7 @@ void GraphicsClass::SetAnisotropicFilter(bool enable)
 
 bool GraphicsClass::Render(float rotation)
 {
-	XMMATRIX worldMatrix, viewMatrix, projectionMatrix;
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
 	bool result;
 
 	// Clear the buffers to begin the scene.
@@ -253,6 +339,8 @@ bool GraphicsClass::Render(float rotation)
 	// Get view and projection matrices.
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_D3D->GetProjectionMatrix(projectionMatrix);
+	m_D3D->GetWorldMatrix(worldMatrix);
+	m_D3D->GetOrthoMatrix(orthoMatrix);
 
 	RenderSkybox(m_D3D->GetDeviceContext(), viewMatrix, projectionMatrix);
 
@@ -273,6 +361,13 @@ bool GraphicsClass::Render(float rotation)
 		dsState->Release();
 	}
 
+
+	// Render the text strings.
+	result = m_Text->Render(m_D3D->GetDeviceContext(), worldMatrix, orthoMatrix);
+	if (!result)
+	{
+		return false;
+	}
 
 
 	//XMMATRIX viewMatrix, projectionMatrix;
@@ -359,7 +454,7 @@ bool GraphicsClass::Render(float rotation)
 			worldMatrix *= XMMatrixTranslation(2.0f, 0.5f, -2.0f);  // X: 5, Z: 2
 
 			float zOffset = sinf(rotation) * 2.0f;
-			worldMatrix *= XMMatrixTranslation( 0.0f, 0.0f, zOffset);
+			worldMatrix *= XMMatrixTranslation(0.0f, 0.0f, zOffset);
 		}
 		else if (i == 5)
 		{
@@ -510,7 +605,7 @@ void GraphicsClass::RenderSkybox(ID3D11DeviceContext* context, XMMATRIX viewMatr
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// 스카이박스 렌더링 (뷰/프로젝션 무시)
-	m_TextureShader->Render(context, m_skyboxIndexCount,0,
+	m_TextureShader->Render(context, m_skyboxIndexCount, 0,
 		identityMatrix, identityMatrix, identityMatrix,
 		m_skyboxTexture);
 
@@ -573,7 +668,7 @@ bool GraphicsClass::InitializeBillboards(ID3D11Device* device)
 void GraphicsClass::RenderBillboards(ID3D11DeviceContext* context, XMMATRIX viewMatrix, XMMATRIX projectionMatrix)
 {
 	// 예제: 2개의 빌보딩 위치
-	XMFLOAT3 positions[] = { XMFLOAT3(5.0f, 2.0f, 3.0f), XMFLOAT3(-3.0f, 2.0f, 5.0f) };
+	XMFLOAT3 positions[] = { XMFLOAT3(4.0f, 1.0f, 1.0f), XMFLOAT3(-3.0f, 2.0f, 5.0f) };
 	ID3D11ShaderResourceView* textures[] = { m_billboardTexture1, m_billboardTexture2 };
 
 	for (int i = 0; i < 2; ++i)
