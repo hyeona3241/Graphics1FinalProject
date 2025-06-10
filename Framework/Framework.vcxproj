@@ -155,6 +155,7 @@
     <ClCompile Include="textureclass.cpp" />
     <ClCompile Include="textureshaderclass.cpp" />
     <ClCompile Include="TimerClass.cpp" />
+    <ClCompile Include="TitleScreen.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AlignedAllocationPolicy.h" />
@@ -173,6 +174,7 @@
     <ClInclude Include="textureclass.h" />
     <ClInclude Include="textureshaderclass.h" />
     <ClInclude Include="TimerClass.h" />
+    <ClInclude Include="TitleScreen.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="data\textureShader.hlsl" />
@@ -190,6 +192,7 @@
     <Image Include="data\ritual.dds" />
     <Image Include="data\statue.dds" />
     <Image Include="data\tile.dds" />
+    <Image Include="data\Title.dds" />
     <Image Include="data\tstatue.dds" />
     <Image Include="data\wall.dds" />
   </ItemGroup>

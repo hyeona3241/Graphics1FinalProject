@@ -10,7 +10,10 @@ GraphicsClass::GraphicsClass()
 	m_Camera = 0;
 	m_TextureShader = 0;
 
+	m_ShowTitle = true;
 	m_Text = 0;
+
+	m_totalPolygonCount = 0;
 }
 
 
@@ -64,6 +67,14 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	InitializeSkybox(m_D3D->GetDevice());
 	InitializeBillboards(m_D3D->GetDevice());
 
+	m_TitleScreen = new TitleScreen;
+	m_ShowTitle = true;
+	if (!m_TitleScreen->Initialize(m_D3D->GetDevice(), L"./data/Title.dds")) {
+		OutputDebugString(L"Vertex buffer creation failed!\n");
+			return false;
+	}
+
+
 	std::vector<std::pair<std::wstring, std::wstring>> modelFiles = {
 		//관
 		{L"./data/ornate.obj",      L"./data/ornate.dds"},
@@ -102,6 +113,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		}
 
 		m_Models.push_back(model);
+		m_totalPolygonCount += model->GetIndexCount() / 3;
 	}
 
 
@@ -139,6 +151,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	m_totalPolygonCount += m_ModelGround->GetIndexCount() / 3;
 
 
 	// Create the texture shader object.
@@ -221,6 +234,9 @@ void GraphicsClass::Shutdown()
 		m_D3D = 0;
 	}
 
+	if (m_TitleScreen) { m_TitleScreen->Shutdown(); delete m_TitleScreen; m_TitleScreen = nullptr; }
+
+
 	return;
 }
 
@@ -290,8 +306,7 @@ bool GraphicsClass::Frame(int fps, int cpu)
 	}
 
 	// Set polygon count.
-	int polygonCount = 105800; // 혹은 폴리곤 수를 계산하는 함수/변수로 대체
-	result = m_Text->SetPolygonCount(polygonCount, m_D3D->GetDeviceContext());
+	result = m_Text->SetPolygonCount(m_totalPolygonCount, m_D3D->GetDeviceContext());
 	if (!result)
 	{
 		return false;
@@ -344,7 +359,21 @@ bool GraphicsClass::Render(float rotation)
 
 	RenderSkybox(m_D3D->GetDeviceContext(), viewMatrix, projectionMatrix);
 
+	if (m_ShowTitle)
+	{
+		// Clear
+		m_D3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
+		// Render TitleScreen
+		m_TitleScreen->Render(m_D3D->GetDeviceContext());
+
+		// TitleScreen은 TextureShader로 풀스크린 Quad로 그려야함
+		XMMATRIX identity = XMMatrixIdentity();
+		m_TextureShader->Render(m_D3D->GetDeviceContext(), 6, 0, identity, identity, identity, m_TitleScreen->m_texture);
+
+		m_D3D->EndScene();
+		return true;
+	}
 
 	ID3D11DeviceContext* context = m_D3D->GetDeviceContext();
 
@@ -578,6 +607,7 @@ bool GraphicsClass::InitializeSkybox(ID3D11Device* device)
 	if (!result) return false;
 
 	m_skyboxTexture = m_SkyboxModel->GetTexture();
+	m_totalPolygonCount += m_SkyboxModel->GetIndexCount() / 3;
 
 	return true;
 }
@@ -653,6 +683,7 @@ bool GraphicsClass::InitializeBillboards(ID3D11Device* device)
 	ModelClass* tempModel1 = new ModelClass;
 	tempModel1->LoadTexture(device, L"./data/billboard2.dds");
 	m_billboardTexture1 = tempModel1->GetTexture();
+	m_totalPolygonCount += tempModel1->GetIndexCount() / 3;
 	delete tempModel1;
 
 	// Billboard 2
@@ -696,6 +727,15 @@ void GraphicsClass::RenderBillboards(ID3D11DeviceContext* context, XMMATRIX view
 
 void GraphicsClass::HandleInput()
 {
+
+	if (m_ShowTitle && (GetAsyncKeyState(VK_RETURN) & 0x8000 ||
+		GetAsyncKeyState(VK_SPACE) & 0x8000 ||
+		GetAsyncKeyState('C') & 0x8000))
+	{
+		m_ShowTitle = false;
+	}
+
+
 	float speed = 0.5f;
 
 	if (GetAsyncKeyState(VK_UP) & 0x8000 || GetAsyncKeyState('W') & 0x8000)

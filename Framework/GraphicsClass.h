@@ -16,6 +16,7 @@
 #include <string>
 #include "timerclass.h"
 #include "textclass.h"
+#include "TitleScreen.h"
 
 
 /////////////
@@ -95,6 +96,11 @@ private:
 
 	int m_screenWidth;
 	int m_screenHeight;
+
+	TitleScreen* m_TitleScreen;
+	bool m_ShowTitle;
+
+	int m_totalPolygonCount;
 
 public:
 	void SetTimer(TimerClass* timer);

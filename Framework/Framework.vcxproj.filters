@@ -59,6 +59,9 @@
     <ClCompile Include="textclass.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="TitleScreen.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dclass.h">
@@ -109,6 +112,9 @@
     <ClInclude Include="textclass.h">
       <Filter>소스 파일</Filter>
     </ClInclude>
+    <ClInclude Include="TitleScreen.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="data\textureShader.hlsl">
@@ -156,6 +162,9 @@
       <Filter>리소스 파일</Filter>
     </Image>
     <Image Include="data\font.dds">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="data\Title.dds">
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>
