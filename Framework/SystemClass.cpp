@@ -57,7 +57,23 @@ bool SystemClass::Initialize()
 	{
 		return false;
 	}
+
+	m_Timer = new TimerClass;
+	if (!m_Timer)
+	{
+		return false;
+	}
+
+	// Initialize the timer object.
+	result = m_Timer->Initialize();
+	if (!result)
+	{
+		MessageBox(m_hwnd, L"Could not initialize the Timer object.", L"Error", MB_OK);
+		return false;
+	}
 	
+	m_Graphics->SetTimer(m_Timer);
+
 	return true;
 }
 
@@ -77,6 +93,12 @@ void SystemClass::Shutdown()
 	{
 		delete m_Input;
 		m_Input = 0;
+	}
+
+	if (m_Timer)
+	{
+		delete m_Timer;
+		m_Timer = 0;
 	}
 
 	// Shutdown the window.
@@ -147,6 +169,9 @@ bool SystemClass::Frame()
 	{
 		return false;
 	}
+
+
+	m_Timer->Frame();
 
 	return true;
 }

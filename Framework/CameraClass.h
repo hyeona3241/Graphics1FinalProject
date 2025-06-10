@@ -37,6 +37,25 @@ private:
 	XMFLOAT3 m_position;
 	XMFLOAT3 m_rotation;
 	XMMATRIX m_viewMatrix;
+
+
+public:
+	XMVECTOR m_defaultForward;
+	XMVECTOR m_defaultRight;
+	XMVECTOR m_camForward;
+	XMVECTOR m_camRight;
+
+	float m_moveLeftRight;
+	float m_moveBackForward;
+
+	float m_camYaw;
+	float m_camPitch;
+
+	// 카메라 이동 업데이트 함수
+	void UpdateCamera();
+
+	// 카메라 이동 변수 초기화 (선택)
+	void ResetMovement();
 };
 
 #endif

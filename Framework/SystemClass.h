@@ -22,7 +22,7 @@
 ///////////////////////
 #include "inputclass.h"
 #include "graphicsclass.h"
-
+#include "timerclass.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: SystemClass
@@ -52,6 +52,8 @@ private:
 
 	InputClass* m_Input;
 	GraphicsClass* m_Graphics;
+
+	TimerClass* m_Timer;
 };
 
 

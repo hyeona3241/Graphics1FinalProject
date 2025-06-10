@@ -212,6 +212,9 @@ bool GraphicsClass::Frame()
 
 	static float rotation = 0.0f;
 
+	HandleInput();
+	m_Camera->UpdateCamera();
+
 
 	// Update the rotation variable each frame.
 	rotation += (float)XM_PI * 0.01f;
@@ -252,6 +255,25 @@ bool GraphicsClass::Render(float rotation)
 	m_D3D->GetProjectionMatrix(projectionMatrix);
 
 	RenderSkybox(m_D3D->GetDeviceContext(), viewMatrix, projectionMatrix);
+
+
+
+	ID3D11DeviceContext* context = m_D3D->GetDeviceContext();
+
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = TRUE;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+
+	ID3D11DepthStencilState* dsState = nullptr;
+	HRESULT hr = m_D3D->GetDevice()->CreateDepthStencilState(&dsDesc, &dsState);
+	if (SUCCEEDED(hr))
+	{
+		context->OMSetDepthStencilState(dsState, 1);
+		dsState->Release();
+	}
+
+
 
 	//XMMATRIX viewMatrix, projectionMatrix;
 	m_Camera->GetViewMatrix(viewMatrix);
@@ -313,21 +335,31 @@ bool GraphicsClass::Render(float rotation)
 			worldMatrix *= XMMatrixScaling(0.08f, 0.08f, 0.08f);    // 크기: 3배
 			worldMatrix *= XMMatrixRotationX(XMConvertToRadians(90.0f));
 			worldMatrix *= XMMatrixRotationY(rotation * 0.5f);   // Y축 회전 (속도 절반)
-			worldMatrix *= XMMatrixTranslation(0.0f, 0.0f, 0.0f);  // z축 0
+			worldMatrix *= XMMatrixTranslation(0.0f, 1.0f, 0.0f);  // z축 0
+
+			// y축으로 ±2 진동
+			float yOffset = sinf(rotation) * 1.0f;
+			worldMatrix *= XMMatrixTranslation(0.0f, yOffset, 0.0f);
 		}
 		else if (i == 8)
 		{
 			worldMatrix *= XMMatrixScaling(0.1f, 0.1f, 0.1f);    // 크기: 3배
 			worldMatrix *= XMMatrixRotationX(XMConvertToRadians(90.0f));
-			worldMatrix *= XMMatrixRotationY(rotation * 0.5f);   // Y축 회전 (속도 절반)
+			worldMatrix *= XMMatrixRotationY(rotation * 1.0f);   // Y축 회전 (속도 절반)
 			worldMatrix *= XMMatrixTranslation(-2.0f, 0.0f, -2.0f);  // X: 5, Z: 2
+
+			float xOffset = sinf(rotation) * 1.5f;
+			worldMatrix *= XMMatrixTranslation(xOffset, 0.0f, 0.0f);
 		}
 		else if (i == 9)
 		{
 			worldMatrix *= XMMatrixScaling(0.8f, 0.8f, 0.8f);    // 크기: 3배
 			//worldMatrix *= XMMatrixRotationX(XMConvertToRadians(90.0f));
-			worldMatrix *= XMMatrixRotationY(rotation * 0.5f);   // Y축 회전 (속도 절반)
+			worldMatrix *= XMMatrixRotationY(rotation * 0.3f);   // Y축 회전 (속도 절반)
 			worldMatrix *= XMMatrixTranslation(2.0f, 0.5f, -2.0f);  // X: 5, Z: 2
+
+			float zOffset = sinf(rotation) * 2.0f;
+			worldMatrix *= XMMatrixTranslation( 0.0f, 0.0f, zOffset);
 		}
 		else if (i == 5)
 		{
@@ -565,5 +597,43 @@ void GraphicsClass::RenderBillboards(ID3D11DeviceContext* context, XMMATRIX view
 			worldMatrix, viewMatrix, projectionMatrix,
 			textures[i]);
 	}
+}
+
+void GraphicsClass::HandleInput()
+{
+	float speed = 0.5f;
+
+	if (GetAsyncKeyState(VK_UP) & 0x8000 || GetAsyncKeyState('W') & 0x8000)
+		m_Camera->m_moveBackForward += speed;
+	if (GetAsyncKeyState(VK_DOWN) & 0x8000 || GetAsyncKeyState('S') & 0x8000)
+		m_Camera->m_moveBackForward -= speed;
+	if (GetAsyncKeyState(VK_LEFT) & 0x8000 || GetAsyncKeyState('A') & 0x8000)
+		m_Camera->m_moveLeftRight -= speed;
+	if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState('D') & 0x8000)
+		m_Camera->m_moveLeftRight += speed;
+
+	// 마우스 회전 처리
+	POINT mousePos;
+	GetCursorPos(&mousePos);
+
+	static POINT lastMousePos = { 0, 0 };
+	if (lastMousePos.x == 0 && lastMousePos.y == 0)
+	{
+		lastMousePos = mousePos;
+	}
+
+	int dx = mousePos.x - lastMousePos.x;
+	int dy = mousePos.y - lastMousePos.y;
+
+	m_Camera->m_camYaw += dx * 0.002f;
+	m_Camera->m_camPitch += dy * 0.002f;
+
+	lastMousePos = mousePos;
+}
+
+void GraphicsClass::SetTimer(TimerClass* timer)
+{
+	m_Timer = timer;
+
 }
 

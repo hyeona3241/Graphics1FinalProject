@@ -14,6 +14,7 @@
 #include "textureshaderclass.h"
 #include <vector>
 #include <string>
+#include "timerclass.h"
 
 
 /////////////
@@ -78,11 +79,18 @@ private:
 	ID3D11Buffer* m_billboardIndexBuffer = nullptr;
 	int m_billboardIndexCount = 0;
 
+	TimerClass* m_Timer = nullptr;
+
 	ID3D11ShaderResourceView* m_billboardTexture1 = nullptr;
 	ID3D11ShaderResourceView* m_billboardTexture2 = nullptr;
 
 	bool InitializeBillboards(ID3D11Device* device);
 	void RenderBillboards(ID3D11DeviceContext* context, XMMATRIX viewMatrix, XMMATRIX projectionMatrix);
+
+	void HandleInput();
+
+public:
+	void SetTimer(TimerClass* timer);
 };
 
 #endif
